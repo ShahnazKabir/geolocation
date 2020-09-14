@@ -1,7 +1,10 @@
 import React from 'react';
 import './App.css';
 import isEqual from 'lodash/isEqual';
-import { Map, Marker  } from 'google-maps-react';
+import { Map, Marker, GoogleApiWrapper  } from 'google-maps-react';
+import LocationModal from './components/LocationModal'
+
+import { Modal, Button } from 'react-bootstrap';
 
 const mapStyles = {
     width: '100%',
@@ -12,8 +15,12 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-          myLocation : null,
-          name : '',
+            myLocation : {
+                lat : 52.520008,
+                lng : 13.404954,
+            },
+            name : '',
+            toggle : false,
         }
         this.watchLocation = this.watchLocation.bind(this);
         this.getLocation = this.getLocation.bind(this);
@@ -25,65 +32,78 @@ class App extends React.Component {
 
         //fetch current position
         navigator.geolocation.getCurrentPosition(function(position) {
-            const myLocation = position.coords;
+            let myLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            }
             object.setState({myLocation});
         });
-    }
-
-    watchLocation() {
-        let object = this;
-        //watch user position with change of location
-
-        this.watchID = navigator.geolocation.watchPosition((position) => {
-            const myLastLocation = this.state.myLocation;
-            const myLocation = position.coords;
-
-            //set current location
-            if (!isEqual(myLocation, myLastLocation)) {
-                object.setState({ myLocation });
-            }
-
-        });
+        this.watchLocation()
     }
 
     onMarkerClick() {
-        console.log('click')
+        this.setState({toggle : !this.state.toggle});
     }
 
-    componentDidMount() {
-      this.getLocation();
-    }
-
-    componentDidUpdate() {
+    watchLocation() {
+        //watch user position with change of location
+        let object = this;
         if(!this.watchID && this.state.latitude && this.state.longitude) {
-            this.watchLocation();
+            this.watchID = navigator.geolocation.watchPosition((position) => {
+                const myLastLocation = this.state.myLocation;
+                let myLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                }
+
+                //set current location
+                if (!isEqual(myLocation, myLastLocation)) {
+                    object.setState({ myLocation});
+                }
+
+            });
         }
     }
 
 
     render() {
-      return (
-          <div className="App">
-              <Map
-                  google={this.props.google}
-                  zoom={14}
-                  style={mapStyles}
-                  initialCenter={{
-                      lat: 40.560001,
-                      lng: -74.290001
-                  }}
-              >
-                  <Marker
-                      onClick={this.onMarkerClick}
-                      name={'This is test name'}
-                      position={{lat: 37.759703, lng: -122.428093}}
-                  />
-              </Map>
-          </div>
-      );
-  }
+        console.log(this.state.toggle)
+        return (
+            <div className="App">
+                <Map
+                    id="map"
+                    google={this.props.google}
+                    zoom={14}
+                    style={mapStyles}
+                    onReady={(mapProps, map) => this.getLocation(mapProps, map)}
+                    initialCenter={this.state.myLocation}
+                    center={this.state.myLocation}
+                >
+                    <Marker
+                        onClick={this.onMarkerClick}
+                        name={'USER'}
+                        position={this.state.myLocation}
+                    />
+                </Map>
+                <Modal show={this.state.toggle} onHide={this.onMarkerClick}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Modal heading</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={this.onMarkerClick}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={this.onMarkerClick}>
+                            Save Changes
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </div>
+        );
+    }
 }
 
 export default GoogleApiWrapper({
-    apiKey: 'API_KEY'
+    apiKey: 'AIzaSyArun5T3OYNz9rlJr6CofseI9lRZOaHVcY'
 })(App);
