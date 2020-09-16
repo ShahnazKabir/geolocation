@@ -1,10 +1,9 @@
 import React from 'react';
 import './App.css';
-import isEqual from 'lodash/isEqual';
-import { Map, Marker, GoogleApiWrapper  } from 'google-maps-react';
-import LocationModal from './components/LocationModal'
-
-import { Modal, Button } from 'react-bootstrap';
+import LocationModal from './components/LocationModal';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import isEqual from "lodash/isEqual";
+import {GoogleApiWrapper, Map, Marker} from "google-maps-react";
 
 const mapStyles = {
     width: '100%',
@@ -21,6 +20,7 @@ class App extends React.Component {
             },
             name : '',
             toggle : false,
+            locationFetched : false,
         }
         this.watchLocation = this.watchLocation.bind(this);
         this.getLocation = this.getLocation.bind(this);
@@ -37,12 +37,9 @@ class App extends React.Component {
                 lng: position.coords.longitude
             }
             object.setState({myLocation});
+            object.setState({locationFetched : true})
         });
         this.watchLocation()
-    }
-
-    onMarkerClick() {
-        this.setState({toggle : !this.state.toggle});
     }
 
     watchLocation() {
@@ -65,40 +62,31 @@ class App extends React.Component {
         }
     }
 
+    onMarkerClick() {
+        this.setState({toggle : !this.state.toggle});
+    }
 
     render() {
-        console.log(this.state.toggle)
         return (
             <div className="App">
-                <Map
-                    id="map"
-                    google={this.props.google}
-                    zoom={14}
-                    style={mapStyles}
-                    onReady={(mapProps, map) => this.getLocation(mapProps, map)}
-                    initialCenter={this.state.myLocation}
-                    center={this.state.myLocation}
-                >
-                    <Marker
-                        onClick={this.onMarkerClick}
-                        name={'USER'}
-                        position={this.state.myLocation}
-                    />
-                </Map>
-                <Modal show={this.state.toggle} onHide={this.onMarkerClick}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Modal heading</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={this.onMarkerClick}>
-                            Close
-                        </Button>
-                        <Button variant="primary" onClick={this.onMarkerClick}>
-                            Save Changes
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
+                <div className="App">
+                    <Map
+                        id="map"
+                        google={this.props.google}
+                        zoom={14}
+                        style={mapStyles}
+                        onReady={(mapProps, map) => this.getLocation(mapProps, map)}
+                        initialCenter={this.state.myLocation}
+                        center={this.state.myLocation}
+                    >
+                        <Marker
+                            onClick={this.onMarkerClick}
+                            name={'USER'}
+                            position={this.state.myLocation}
+                        />
+                    </Map>
+                </div>
+                <LocationModal show={this.state.toggle} coords={this.state.myLocation} handleClose={this.onMarkerClick}/>
             </div>
         );
     }
