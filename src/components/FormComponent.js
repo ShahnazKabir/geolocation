@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
-import validator from 'validator';
 
-const coordRegex = /^((-?[1-8]?\d(?:\.\d{1,18})?|90(?:\.0{1,18})?),(-?(?:1[0-7]|[1-9])?\d(?:\.\d{1,18})?|180(?:\.0{1,18})?))$/ ;
+const latRegex = /^(-?[1-8]?\d(?:\.\d{1,18})?|90(?:\.0{1,18})?)$/;
+const lngRegex = /^(-?(?:1[0-7]|[1-9])?\d(?:\.\d{1,18})?|180(?:\.0{1,18})?)$/;
 
 export default class FormComponent extends Component {
+    coords = this.props.coords.lat + ', ' + this.props.coords.lng;
     formDefaults = {
-        email: { value: '', isValid: true, message: '' },
-        password: { value: '', isValid: true, message: '' },
-        confirmPassword: { value: '', isValid: true, message: '' }
+        coordinates: { value: this.coords, isValid: true, message: '' },
+        userName: { value: '', isValid: true, message: '' },
     }
 
     constructor(props) {
@@ -26,7 +26,6 @@ export default class FormComponent extends Component {
                 value: e.target.value,
             }
         };
-
         this.setState(state);
     }
 
@@ -36,31 +35,52 @@ export default class FormComponent extends Component {
         this.resetValidationStates();
         // run the validation, and if it's good move on.
         if (this.formIsValid()) {
-            // form processing here....
+            console.log('My location coordinates: ', this.state.coordinates.value);
+            console.log('My Name: ', this.state.userName.value)
+            this.props.modalClose();
         }
     }
 
     formIsValid = () => {
-        const email = { ...this.state.email };
-        const password = { ...this.state.password };
-        const confirmPassword = { ...this.state.confirmPassword };
+        const coordinates = { ...this.state.coordinates };
+        const userName = { ...this.state.userName };
         let isGood = true;
-        let checkCoord = coordRegex.test(email)
-        console.log(checkCoord)
 
-        if (!validator.isEmail(email.value)) {
-            email.isValid = false;
-            email.message = 'Not a valid email address';
+        if(coordinates.value.includes(',')) {
+            var res = coordinates.value.split(",");
+            let validLet = latRegex.test(res[0].trim());
+            let validLng = lngRegex.test(res[1].trim());
+            if(!validLet) {
+                coordinates.isValid = false;
+                coordinates.message = 'Not A Valid Latitude';
+                isGood = false;
+            }
+            if(!validLng) {
+                coordinates.isValid = false;
+                coordinates.message = 'Not A Valid Longitude';
+                isGood = false;
+            }
+            if(!validLng && !validLng) {
+                coordinates.isValid = false;
+                coordinates.message = 'Not A Valid Coordinates';
+                isGood = false;
+            }
+        } else {
+            coordinates.isValid = false;
+            coordinates.message = 'Input Must Be Two Number Separated By A Comma';
             isGood = false;
         }
 
-        // perform addtion validation on password and confirmPassword here...
+        if(userName.value.length <= 0) {
+            userName.isValid = false;
+            userName.message = 'Name Must Be A String of Minimum 6 Character';
+            isGood = false;
+        }
 
         if (!isGood) {
             this.setState({
-                email,
-                password,
-                confirmPassword,
+                coordinates,
+                userName,
             });
         }
 
@@ -81,24 +101,17 @@ export default class FormComponent extends Component {
         this.setState(state);
     }
 
-    resetForm = () => {
-        this.setState(...this.formDefaults);
-    }
-
     render() {
-        const { email, password, confirmPassword } = this.state;
+        const { coordinates, userName } = this.state;
         /*
         Each of the group classes below will include the 'form-group' class,
         and will only include the 'has-error' class if the isValid value is false.
         */
-        const emailGroupClass = classNames('form-group',
-            { 'has-error': !email.isValid }
+        const coordsGroupClass = classNames('form-group',
+            { 'has-error': !coordinates.isValid }
         );
-        const passwordGroupClass = classNames('form-group',
-            { 'has-error': !password.isValid }
-        );
-        const confirmGroupClass = classNames('form-group',
-            { 'has-error': !confirmPassword.isValid }
+        const nameGroupClass = classNames('form-group',
+            { 'has-error': !userName.isValid }
         );
 
         return (
@@ -106,48 +119,35 @@ export default class FormComponent extends Component {
                 <form className="form-signin" onSubmit={this.onSubmit}>
                     <h2 className="form-signin-heading">Create Account</h2>
 
-                    <div className={emailGroupClass}>
+                    <div className={coordsGroupClass}>
                         <input
                             type="text"
-                            name="email"
+                            name="coordinates"
                             className="form-control"
-                            placeholder="Email address"
-                            value={email.value}
+                            placeholder="Latitude, Longitude"
+                            value={coordinates.value}
                             onChange={this.onChange}
                             autoFocus
                         />
-                        <span className="help-block">{email.message}</span>
+                        <span className="help-block">{coordinates.message}</span>
                     </div>
 
-                    <div className={passwordGroupClass}>
+                    <div className={nameGroupClass}>
                         <input
-                            type="password"
-                            name="password"
+                            type="text"
+                            name="userName"
                             className="form-control"
-                            placeholder="Password"
-                            value={password.value}
+                            placeholder="Name"
+                            value={userName.value}
                             onChange={this.onChange}
                         />
-                        <span className="help-block">{password.message}</span>
+                        <span className="help-block">{userName.message}</span>
                     </div>
-
-                    <div className={confirmGroupClass}>
-                        <input
-                            type="password"
-                            name="confirmPassword"
-                            className="form-control"
-                            placeholder="Confirm Password"
-                            value={confirmPassword.value}
-                            onChange={this.onChange}
-                        />
-                        <span className="help-block">{confirmPassword.message}</span>
-                    </div>
-
                     <button
                         className="btn btn-lg btn-primary btn-block"
                         type="submit"
                     >
-                        Create Account
+                        Submit
                     </button>
                 </form>
             </div>

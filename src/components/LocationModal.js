@@ -3,6 +3,7 @@ import { Modal, Button } from 'react-bootstrap';
 import FormComponent from "./FormComponent";
 
 class LocationModal extends React.Component{
+
     render() {
         return(
             <>
@@ -11,7 +12,7 @@ class LocationModal extends React.Component{
                         <Modal.Title>Modal heading</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <FormComponent {...this.props}/>
+                        <FormComponent {...this.props} modalClose={this.props.handleClose}/>
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={this.props.handleClose}>
